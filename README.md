@@ -4,5 +4,5 @@ npm i
 ```
 ### Installer l'apk
 ```
-npm run adnroid
+npm run android
 ```
