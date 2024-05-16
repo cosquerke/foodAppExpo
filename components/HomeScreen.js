@@ -1,111 +1,111 @@
 import React, { Component } from 'react';
-import { View, Text, Button, TextInput, Alert } from 'react-native';
+import { View, Text, Button, TextInput, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import Checkbox from 'expo-checkbox';
+import Intolerances_data from '../assets/intolerances.json';
 
-class Inputs extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            firstname: '',
-            lastname: '',
-            allergy: '',
-            submitted: false
-        };
-        this.handleFirstname = this.handleFirstname.bind(this);
-        this.handleLastName = this.handleLastName.bind(this);
-        this.handleAllergy = this.handleAllergy.bind(this);
-    }
+class InputFields extends Component {
+  handlePrenomChange = (text) => {
+    this.props.onPrenomChange(text);
+  };
 
-    handleFirstname(firstname_input) {
-        this.setState({ firstname: firstname_input });
-    }
+  render() {
+    return (
+      <View>
+        <TextInput placeholder="Prenom" onChangeText={this.handlePrenomChange} />
+      </View>
+    );
+  }
+}
 
-    handleLastName(lastname_input) {
-        this.setState({ lastname: lastname_input });
-    }
-
-    handleAllergy(allergy_input) {
-        this.setState({ allergy: allergy_input });
-    }
-
-    handleSubmit = () => {
-        if (this.state.firstname === '' || this.state.lastname === '') {
-            Alert.alert('Erreur', 'Veuillez remplir tous les champs');
-        } else {
-            this.setState({ submitted: true }); 
-        }
-        this.props.onSubmitted(this.state);
-    }
-
-    render() {
-        if (this.state.submitted) {
-            return (
-                <View>
-                    <Text>Prénom: {this.state.firstname}</Text>
-                    <Text>Nom: {this.state.lastname}</Text>
-                    <Text>Allergie: {this.state.allergy}</Text>
-                </View>
-            );
-        }
-
-        return (
-            <View>
-                <Text>Prénom:</Text>
-                <TextInput
-                    onChangeText={this.handleFirstname} />
-
-                <Text>Nom:</Text>
-                <TextInput
-                    onChangeText={this.handleLastName} />
-
-                <Text>Allergie:</Text>
-                <TextInput
-                    onChangeText={this.handleAllergy} />
-
-                <Button title="Submit" onPress={this.handleSubmit} />
-
+class Intolerances extends Component {
+  render() {
+    const { intolerances, toggleIntolerance } = this.props;
+    return (
+      <ScrollView style={styles.scrollView}>
+        {intolerances.map((intolerance, index) => (
+          <TouchableOpacity key={index} onPress={() => toggleIntolerance(intolerance)}>
+            <View style={styles.intoleranceItem}>
+              <Checkbox
+                style={styles.checkbox}
+                value={this.props.selectedIntolerances.includes(intolerance)}
+                onValueChange={() => toggleIntolerance(intolerance)}
+              />
+              <Text style={styles.intoleranceText}>{intolerance}</Text>
             </View>
-        );
-    }
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  }
 }
 
 class HomeScreen extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            data: null,
-            is_ready: false
-        };
-        this.handleInputsSubmitted = this.handleInputsSubmitted.bind(this);
-    }
+  constructor(props) {
+    super(props);
+    this.state = {
+      prenom: '',
+      selectedIntolerances: [], // Liste des intolérances sélectionnées
+    };
+  }
 
-    handleInputsSubmitted = (submitted_data) => {
-        this.setState({ data: submitted_data });
-        if (this.state.firstname != '' && this.state.lastname != '') {
-            this.setState({ is_ready: true });
-        }
-      }
+  handlePrenomChange = (prenom) => {
+    this.setState({ prenom });
+  };
 
-    render() {
-        const { navigation } = this.props;
-        if(this.state.is_ready){
-            return (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Inputs onSubmitted={this.handleInputsSubmitted} />
-                    <Button
-                        title="Go to Search"
-                        onPress={() => navigation.navigate('Search', {user_info: this.state.data})}
-                    />
-                </View>
-            )
-        }else{
-            return (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                    <Inputs onSubmitted={this.handleInputsSubmitted} />
-                </View>
-            )
-        }
-        
+  toggleIntolerance = (intolerance) => {
+    const { selectedIntolerances } = this.state;
+    if (selectedIntolerances.includes(intolerance)) {
+      this.setState({
+        selectedIntolerances: selectedIntolerances.filter((item) => item !== intolerance),
+      });
+    } else {
+      this.setState({
+        selectedIntolerances: [...selectedIntolerances, intolerance],
+      });
     }
+  };
+
+  render() {
+    const { navigation } = this.props;
+    const { prenom, selectedIntolerances } = this.state;
+    console.log(this.state)
+    return (
+      <View>
+        <InputFields onPrenomChange={this.handlePrenomChange} />
+        {prenom !== '' ? (
+          <View>
+            <Intolerances
+              intolerances={Intolerances_data.items}
+              toggleIntolerance={this.toggleIntolerance}
+              selectedIntolerances={selectedIntolerances}
+            />
+            <Button title="Go to Search" onPress={() => navigation.navigate('Search', { user_info: this.state })} />
+          </View>
+        ) : (
+          <Intolerances
+            intolerances={Intolerances_data.items}
+            toggleIntolerance={this.toggleIntolerance}
+            selectedIntolerances={selectedIntolerances}
+          />
+        )}
+      </View>
+    );
+  }
 }
+
+const styles = StyleSheet.create({
+  intoleranceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  intoleranceText: {
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  scrollView: {
+    maxHeight: 200, // Set maximum height for scrolling
+  },
+});
 
 export default HomeScreen;
