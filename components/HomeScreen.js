@@ -1,88 +1,40 @@
 import React, { Component } from 'react';
-import { View, Text, Button, TextInput, Alert, StyleSheet, FlatList, Image } from 'react-native';
+import { View, Text, Button, TextInput, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import Checkbox from 'expo-checkbox';
+import Intolerances_data from '../assets/intolerances.json';
 
-const baseURL = 'https://api.spoonacular.com/food/ingredients/autocomplete?query=';
-//const apiKeyQueryString = "&apiKey=4538c45f84234eb0bb890d57be2d6398"
-//const apiKeyQueryString = "&apiKey=5538cdbd824f4e70baababf038847459"
-const apiKeyQueryString = "&apiKey=4bfb490dcd154b098a7177a9f8b80299"
-
-const dao = {
-  findAllergyByName: async (ingredient_name) => {
-    const url = `${baseURL}${ingredient_name}&number=5${apiKeyQueryString}`;
-    console.log(url)
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching ingredients:', error);
-      return [];
-    }
-  },
-}
-
-class AllergySearch extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      query: '',
-      ingredients: [],
-    };
-  }
-
-  handleInputChange = async (text) => {
-    this.setState({ query: text });
-    if (text.length > 0) {
-      const results = await dao.findAllergyByName(text);
-      this.setState({ ingredients: results });
-    } else {
-      this.setState({ ingredients: [] });
-    }
+class InputFields extends Component {
+  handlePrenomChange = (text) => {
+    this.props.onPrenomChange(text);
   };
 
   render() {
-    const { query, ingredients } = this.state;
     return (
-      <View >
-        <TextInput
-          
-          placeholder="Search for ingredients"
-          value={query}
-          onChangeText={this.handleInputChange}
-        />
-        <FlatList
-          data={ingredients}
-          keyExtractor={(item) => item.name}
-          renderItem={({ item }) => (
-            <View >
-              <Image
-                source={{ uri: `https://spoonacular.com/cdn/ingredients_100x100/${item.image}` }}
-                
-              />
-              <Text>{item.name}</Text>
-            </View>
-          )}
-        />
+      <View>
+        <TextInput placeholder="Prenom" onChangeText={this.handlePrenomChange} />
       </View>
     );
   }
 }
 
-class InputFields extends React.Component {
-  handlePrenomChange = (text) => {
-    this.props.onPrenomChange(text);
-  }
-
+class Intolerances extends Component {
   render() {
+    const { intolerances, toggleIntolerance } = this.props;
     return (
-      <View >
-        <TextInput
-          placeholder="Prenom"
-          onChangeText={this.handlePrenomChange}
-        />
-      </View>
+      <ScrollView style={styles.scrollView}>
+        {intolerances.map((intolerance, index) => (
+          <TouchableOpacity key={index} onPress={() => toggleIntolerance(intolerance)}>
+            <View style={styles.intoleranceItem}>
+              <Checkbox
+                style={styles.checkbox}
+                value={this.props.selectedIntolerances.includes(intolerance)}
+                onValueChange={() => toggleIntolerance(intolerance)}
+              />
+              <Text style={styles.intoleranceText}>{intolerance}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     );
   }
 }
@@ -91,41 +43,69 @@ class HomeScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      prenom: ''
+      prenom: '',
+      selectedIntolerances: [], // Liste des intolérances sélectionnées
     };
   }
 
   handlePrenomChange = (prenom) => {
     this.setState({ prenom });
-  }
+  };
+
+  toggleIntolerance = (intolerance) => {
+    const { selectedIntolerances } = this.state;
+    if (selectedIntolerances.includes(intolerance)) {
+      this.setState({
+        selectedIntolerances: selectedIntolerances.filter((item) => item !== intolerance),
+      });
+    } else {
+      this.setState({
+        selectedIntolerances: [...selectedIntolerances, intolerance],
+      });
+    }
+  };
 
   render() {
     const { navigation } = this.props;
-    console.log(this.state.prenom)
-    if (this.state.prenom != '') {
-      return (
-        <View >   
-        <InputFields
-            onPrenomChange={this.handlePrenomChange}
+    const { prenom, selectedIntolerances } = this.state;
+    console.log(this.state)
+    return (
+      <View>
+        <InputFields onPrenomChange={this.handlePrenomChange} />
+        {prenom !== '' ? (
+          <View>
+            <Intolerances
+              intolerances={Intolerances_data.items}
+              toggleIntolerance={this.toggleIntolerance}
+              selectedIntolerances={selectedIntolerances}
+            />
+            <Button title="Go to Search" onPress={() => navigation.navigate('Search', { user_info: this.state })} />
+          </View>
+        ) : (
+          <Intolerances
+            intolerances={Intolerances_data.items}
+            toggleIntolerance={this.toggleIntolerance}
+            selectedIntolerances={selectedIntolerances}
           />
-          <AllergySearch/>
-          <Button
-            title="Go to Search"
-            onPress={() => navigation.navigate('Search', { user_info: this.state })}
-          />
-        </View>
-      );
-    } else {
-      return (
-        <View>
-          <InputFields
-            onPrenomChange={this.handlePrenomChange}
-          />
-          <AllergySearch />
-        </View>
-      );
-    }
+        )}
+      </View>
+    );
   }
 }
+
+const styles = StyleSheet.create({
+  intoleranceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  intoleranceText: {
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  scrollView: {
+    maxHeight: 200, // Set maximum height for scrolling
+  },
+});
 
 export default HomeScreen;
