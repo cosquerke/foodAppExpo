@@ -13,7 +13,6 @@ const dao = {
         if(cuisine !== "") {
             url += `&cuisine=${cuisine}`; 
         }
-        console.log(url)
         try {
             const response = await fetch(url);
             if (!response.ok) {

@@ -85,7 +85,6 @@ class ListeIngredient extends Component {
         const { ingredients } = this.state; 
         const { selectedItems, onSelectedItemsChange } = this.props;
 
-        // Ensure ingredients is an array before mapping
         const ingredientItems = Array.isArray(ingredients) ? ingredients.map(ingredient => ({
             id: ingredient.id,
             name: ingredient.name

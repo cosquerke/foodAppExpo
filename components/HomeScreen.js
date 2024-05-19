@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   intolerancesContainer: {
     width: '80%',
-    maxHeight: 200, // Set maximum height for scrolling
+    maxHeight: 200, 
     marginBottom: 20,
   },
   intoleranceItem: {
