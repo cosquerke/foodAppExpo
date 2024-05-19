@@ -1,31 +1,18 @@
 import React, { Component } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 const baseURL = 'https://api.spoonacular.com';
 const apiKeyQueryString = "&apiKey=e3f5990321d04b1bab62b7ebb32aec9b"
 
 const dao = {
-    findIngredientsStartingWith: async (query) => {
-        if (query !== "") {
-            const url = `${baseURL}/food/ingredients/search?query=${query}${apiKeyQueryString}&number=5`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const datas = await response.json();
-                return datas.results;
-            } catch (error) {
-                console.error('Error fetching ingredients:', error);
-                return [];
-            }
-        } else {
-            return [];
+    findRecipesWithIngredients: async (ingredients, intolerances, cuisine) => {
+        let url = `${baseURL}/recipes/complexSearch?includeIngredients=${ingredients}${apiKeyQueryString}&number=15`;
+        if (intolerances !== "") {  
+            url += `&intolerances=${intolerances}`; 
         }
-    },
-
-    findRecipesWithIngredients: async (ingredients) => {
-        const url = `${baseURL}/recipes/findByIngredients?ingredients=${ingredients}${apiKeyQueryString}&number=10`;
+        if(cuisine !== "") {
+            url += `&cuisine=${cuisine}`; 
+        }
         console.log(url)
         try {
             const response = await fetch(url);
@@ -33,7 +20,7 @@ const dao = {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const datas = await response.json();
-            return datas;
+            return datas.results;
         } catch (error) {
             console.error('Error fetching recipes:', error);
             return [];
@@ -41,51 +28,67 @@ const dao = {
     }
 };
 
+class Recipe extends Component {
+    render() {
+        const { recipe, onRecipePress } = this.props;
+        return (
+            <TouchableOpacity style={styles.recipeContainer} onPress={() => onRecipePress(recipe)}>
+                <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
+                <View style={styles.recipeInfo}>
+                    <Text style={styles.recipeName}>{recipe.title}</Text>
+                    <Text style={styles.clickHint}>Cliquez pour plus de details</Text>
+                </View>
+            </TouchableOpacity>
+        );
+    }
+}
+
 class RecipesList extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            recipes: [],
+            recipes: []
         };
     }
 
     async componentDidMount() {
-        const { ingredients } = this.props;
-        console.log(ingredients)
+        const { ingredients, intolerances, cuisine } = this.props;
         try {
-            const recipes = await dao.findRecipesWithIngredients(ingredients.join(','));
+            const recipes = await dao.findRecipesWithIngredients(ingredients.join(','), intolerances.join(','), cuisine);
             this.setState({ recipes });
         } catch (error) {
             console.error('Error fetching recipes:', error);
         }
     }
 
+    handleRecipePress = (recipe) => {
+        this.props.navigation.navigate('Details', { id_recipe: recipe.id })
+    };
+
     render() {
-        const { recipes } = this.props;
-        console.log(recipes)
+        const { recipes } = this.state;
         return (
-            <ScrollView contentContainerStyle={styles.container}>
-                {recipes.map(recipe => (
-                    <View key={recipe.id} style={styles.recipeContainer}>
-                        <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
-                        <View style={styles.recipeInfo}>
-                            <Text style={styles.recipeName}>{recipe.title}</Text>
-                            <Text style={styles.likeCount}>{recipe.likes} Likes</Text>
-                        </View>
-                    </View>
-                ))}
-            </ScrollView>
+            <View style={styles.container}>
+                <Text style={styles.pageTitle}>Liste des Recettes</Text>
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    {recipes.map(recipe => (
+                        <Recipe key={recipe.id} recipe={recipe} onRecipePress={this.handleRecipePress} />
+                    ))}
+                </ScrollView>
+            </View>
         );
     }
 }
 
 class RecipesScreen extends Component {
     render() {
-        const { route } = this.props;
+        const { route, navigation } = this.props;
         const ingredients = route.params?.ingredients || [];
+        const intolerances = route.params?.intolerances || [];
+        const cuisine = route.params?.cuisine || null;
         return (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <RecipesList ingredients={ingredients} />
+                <RecipesList ingredients={ingredients} intolerances={intolerances} cuisine={cuisine} navigation={navigation} />
             </View>
         );
     }
@@ -93,13 +96,17 @@ class RecipesScreen extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        paddingVertical: 16,
-        paddingHorizontal: 20,
+        flex: 1,
+        padding: 16,
     },
     recipeContainer: {
         marginBottom: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        overflow: 'hidden',
     },
     recipeImage: {
         width: 100,
@@ -119,6 +126,21 @@ const styles = StyleSheet.create({
     likeCount: {
         fontSize: 16,
         color: '#888',
+    },
+    clickHint: {
+        fontSize: 14,
+        color: '#666',
+        fontStyle: 'italic',
+        marginTop: 4,
+    },
+    scrollContainer: {
+        paddingVertical: 16,
+    },
+    pageTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        margin: 16,
     },
 });
 

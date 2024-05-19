@@ -9,7 +9,6 @@ const api_key = "&apiKey=4bfb490dcd154b098a7177a9f8b80299"
 const dao = {
   getInformationAboutRecipe: async (recipe_id) => {
     const url = `${baseURL}${recipe_id}/information?includeNutrition=false${api_key}`;
-    console.log(url)
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -23,9 +22,7 @@ const dao = {
   },
 
   getInstructionAboutRecipe: async (recipe_id) => {
-    console.log(recipe_id);
     const url = `${baseURL}${recipe_id}/analyzedInstructions?${api_key}`;
-    console.log('Calling URL:', url);
 
     try {
       const response = await fetch(url);

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, Button, TextInput, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Button, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import Intolerances_data from '../assets/intolerances.json';
 
@@ -10,8 +10,13 @@ class InputFields extends Component {
 
   render() {
     return (
-      <View>
-        <TextInput placeholder="Prenom" onChangeText={this.handlePrenomChange} />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Prénom"
+          onChangeText={this.handlePrenomChange}
+          underlineColorAndroid="transparent"
+        />
       </View>
     );
   }
@@ -21,7 +26,7 @@ class Intolerances extends Component {
   render() {
     const { intolerances, toggleIntolerance } = this.props;
     return (
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.intolerancesContainer}>
         {intolerances.map((intolerance, index) => (
           <TouchableOpacity key={index} onPress={() => toggleIntolerance(intolerance)}>
             <View style={styles.intoleranceItem}>
@@ -68,32 +73,57 @@ class HomeScreen extends Component {
   render() {
     const { navigation } = this.props;
     const { prenom, selectedIntolerances } = this.state;
-    console.log(this.state)
+    const isButtonDisabled = prenom === '';
+
     return (
-      <View>
+      <View style={styles.container}>
+        <Text style={styles.title}>Bienvenue</Text>
         <InputFields onPrenomChange={this.handlePrenomChange} />
-        {prenom !== '' ? (
-          <View>
-            <Intolerances
-              intolerances={Intolerances_data.items}
-              toggleIntolerance={this.toggleIntolerance}
-              selectedIntolerances={selectedIntolerances}
-            />
-            <Button title="Go to Search" onPress={() => navigation.navigate('Search', { user_info: this.state })} />
-          </View>
-        ) : (
-          <Intolerances
-            intolerances={Intolerances_data.items}
-            toggleIntolerance={this.toggleIntolerance}
-            selectedIntolerances={selectedIntolerances}
-          />
-        )}
+        <Intolerances
+          intolerances={Intolerances_data.items}
+          toggleIntolerance={this.toggleIntolerance}
+          selectedIntolerances={selectedIntolerances}
+        />
+        <Button
+          title="Rechercher"
+          onPress={() => navigation.navigate('Recherche', { user_info: this.state })}
+          color="#007BFF"
+          disabled={isButtonDisabled}
+        />
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  inputContainer: {
+    width: '80%',
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 16,
+  },
+  intolerancesContainer: {
+    width: '80%',
+    maxHeight: 200, // Set maximum height for scrolling
+    marginBottom: 20,
+  },
   intoleranceItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -102,9 +132,6 @@ const styles = StyleSheet.create({
   intoleranceText: {
     fontSize: 16,
     marginLeft: 10,
-  },
-  scrollView: {
-    maxHeight: 200, // Set maximum height for scrolling
   },
 });
 

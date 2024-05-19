@@ -12,11 +12,11 @@ class App extends React.Component {
   render() {
     return (
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
+        <Stack.Navigator initialRouteName="Accueil">
+          <Stack.Screen name="Accueil" component={HomeScreen} />
+          <Stack.Screen name="Recherche" component={SearchScreen} />
+          <Stack.Screen name="Recettes" component={RecipesScreen} />
           <Stack.Screen name="Details" component={DetailsScreen} />
-          <Stack.Screen name="Recipes" component={RecipesScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     );
