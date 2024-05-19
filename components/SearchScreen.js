@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     multiSelectContainer: {
-        width: '80%',
+        width: '100%',
         marginBottom: 20,
     },
     title: {
