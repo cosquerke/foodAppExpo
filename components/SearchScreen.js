@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { View, Text, Button, ScrollView, StyleSheet, TouchableOpacity, Picker } from 'react-native';
+import { View, Text, Button, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; 
 import MultiSelect from 'react-native-multiple-select';
 import _ from 'lodash';
 import cuisinesDatas from '../assets/cuisines.json';
