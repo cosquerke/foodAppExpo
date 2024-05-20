@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import { View, Text, Button, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; 
+import { View, Text, Button, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import MultiSelect from 'react-native-multiple-select';
 import _ from 'lodash';
 import cuisinesDatas from '../assets/cuisines.json';
-
 
 const baseURL = 'https://api.spoonacular.com';
 const apiKeyQueryString = "&apiKey=e3f5990321d04b1bab62b7ebb32aec9b";
@@ -92,7 +91,7 @@ class ListeIngredient extends Component {
         })) : [];
 
         return (
-            <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.listeIngredientContainer}>
                 {this.renderSelectedItems()}
                 <View style={styles.multiSelectContainer}>
                     <MultiSelect
@@ -105,7 +104,6 @@ class ListeIngredient extends Component {
                         selectText="Choisissez des ingrédients..."
                         searchInputPlaceholderText="Rechercher des ingrédients..."
                         onChangeInput={this.onChangeInputDebounced}
-                        altFontFamily="ProximaNova-Light"
                         tagRemoveIconColor="#CCC"
                         tagBorderColor="#CCC"
                         tagTextColor="#CCC"
@@ -115,9 +113,10 @@ class ListeIngredient extends Component {
                         displayKey="name"
                         hideSubmitButton={true}
                         searchInputStyle={{ color: '#000' }}
+                        styleDropdownMenuSubsection={styles.multiSelectDropdown}
                     />
                 </View>
-            </ScrollView>
+            </View>
         );
     }
 }
@@ -141,36 +140,35 @@ class SearchScreen extends Component {
 
     render() {
         const { navigation, route } = this.props;
-        const { selectedItems , selectedCuisine} = this.state;
+        const { selectedItems , selectedCuisine } = this.state;
         const userInfo = route.params?.user_info || {};
-        const intolerances = userInfo.selectedIntolerances
+        const intolerances = userInfo.selectedIntolerances;
         const isButtonDisabled = selectedItems.length === 0;
+
         return (
-            <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.container}>
                 <Text style={styles.title}>Choix des ingrédients</Text>
-                <View style={styles.contentContainer}>
-                    <ListeIngredient
-                        selectedItems={selectedItems}
-                        onSelectedItemsChange={this.onSelectedItemsChange}
-                        intolerances={intolerances}
-                    />
-                    <Picker
-                        selectedValue={selectedCuisine}
-                        style={styles.cuisinePicker}
-                        onValueChange={(itemValue) => this.onCuisineChange(itemValue)}>
-                        <Picker.Item label="Choisissez un type de cuisine..." value={null} />
-                        {cuisinesDatas.items.map((cuisine, index) => (
-                            <Picker.Item key={index} label={cuisine} value={cuisine} />
-                        ))}
-                    </Picker>
-                </View>
+                <ListeIngredient
+                    selectedItems={selectedItems}
+                    onSelectedItemsChange={this.onSelectedItemsChange}
+                    intolerances={intolerances}
+                />
+                <Picker
+                    selectedValue={selectedCuisine}
+                    style={styles.cuisinePicker}
+                    onValueChange={this.onCuisineChange}>
+                    <Picker.Item label="Choisissez un type de cuisine..." value={null} />
+                    {cuisinesDatas.items.map((cuisine, index) => (
+                        <Picker.Item key={index} label={cuisine} value={cuisine} />
+                    ))}
+                </Picker>
                 <Button
                     title="Rechercher des recettes"
                     onPress={() => navigation.navigate('Recettes', { ingredients: selectedItems, intolerances: intolerances, cuisine: selectedCuisine })}
                     disabled={isButtonDisabled}
                     color={isButtonDisabled ? '#ccc' : '#007BFF'}
                 />
-            </ScrollView>
+            </View>
         );
     }
 }
@@ -180,46 +178,45 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 20,
+        padding: 20,
     },
-    contentContainer: {
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    listeIngredientContainer: {
+        width: '100%',
         alignItems: 'center',
         marginBottom: 20,
-        width: '100%',
     },
     selectedItemsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        justifyContent: 'center',
         marginBottom: 10,
     },
     selectedItem: {
-        backgroundColor: '#ccc',
+        backgroundColor: '#e0e0e0',
         borderRadius: 8,
         padding: 8,
-        margin: 4
+        margin: 4,
     },
     selectedItemText: {
-        color: '#000'
-    },
-    description: {
-        fontSize: 16,
-        marginBottom: 10,
-        textAlign: 'center',
+        color: '#000',
     },
     multiSelectContainer: {
         width: '100%',
         marginBottom: 20,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
+    multiSelectDropdown: {
+        padding: 10,
+        backgroundColor: '#f9f9f9',
+        borderRadius: 8,
     },
     cuisinePicker: {
         height: 50,
-        width: '80%',
+        width: '100%',
         marginBottom: 20,
         borderColor: '#CCC',
         borderWidth: 1,
@@ -227,6 +224,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
 });
-
 
 export default SearchScreen;
